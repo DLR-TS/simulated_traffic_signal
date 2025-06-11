@@ -89,6 +89,8 @@ SimulatedTrafficSignal::update_signals()
     msg.signals.push_back( signal_msg );
   }
 
+  msg.header.frame_id = "world";
+
   publisher->publish( msg );
 }
 } // namespace adore
