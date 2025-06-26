@@ -1,4 +1,6 @@
 #include "simulated_traffic_signal.hpp"
+#include <unistd.h>
+#include "std_msgs/msg/string.hpp"
 
 using namespace std::chrono_literals;
 
@@ -31,8 +33,14 @@ SimulatedTrafficSignal::SimulatedTrafficSignal() :
     traffic_lights.emplace_back( TrafficLightConfig{ x, y, red_duration, yellow_duration, green_duration, TrafficSignalMsg::RED, now() } );
   }
 
+  declare_parameter( "permanent_red", false );
+  get_parameter( "permanent_red", permanent_red );
+
   // Publisher
   publisher = create_publisher<TrafficSignalsMsg>( "traffic_signals", 10 );
+
+  // Subscirber
+  subscriber_user_input = create_subscription<std_msgs::msg::String>( "user_input", 1, std::bind( &SimulatedTrafficSignal::user_input_callback, this, std::placeholders::_1 ) );
 
   // Timer
   timer = create_wall_timer( std::chrono::milliseconds( 100 ), std::bind( &SimulatedTrafficSignal::update_signals, this ) );
@@ -52,7 +60,7 @@ SimulatedTrafficSignal::update_signals()
     switch( light.state )
     {
       case TrafficSignalMsg::RED:
-        if( elapsed_time >= light.red_duration )
+        if( elapsed_time >= light.red_duration && !permanent_red )
         {
           light.state                = TrafficSignalMsg::GREEN;
           light.last_transition_time = current_time;
@@ -93,6 +101,22 @@ SimulatedTrafficSignal::update_signals()
 
   publisher->publish( msg );
 }
+
+void
+SimulatedTrafficSignal::user_input_callback( const std_msgs::msg::String& msg )
+{
+  if ( msg.data == "turn green")
+  {
+    for (auto &light : traffic_lights)
+    {
+      std::cerr << "Turning traffic lights green" << std::endl;
+      light.state = TrafficSignalMsg::GREEN;
+      light.last_transition_time = now();
+    }
+  }
+  
+}
+
 } // namespace adore
 
 int
