@@ -68,7 +68,7 @@ SimulatedTrafficSignal::update_signals()
         break;
 
       case TrafficSignalMsg::GREEN:
-        if( elapsed_time >= light.green_duration )
+        if( elapsed_time >= light.green_duration && !permanent_red)
         {
           light.state                = TrafficSignalMsg::YELLOW;
           light.last_transition_time = current_time;
@@ -115,6 +115,15 @@ SimulatedTrafficSignal::user_input_callback( const std_msgs::msg::String& msg )
     }
   }
   
+  if ( msg.data == "turn red")
+  {
+    for (auto &light : traffic_lights)
+    {
+      std::cerr << "Turning traffic lights red" << std::endl;
+      light.state = TrafficSignalMsg::RED;
+      light.last_transition_time = now();
+    }
+  }
 }
 
 } // namespace adore
