@@ -105,6 +105,26 @@ SimulatedTrafficSignal::update_signals()
 void
 SimulatedTrafficSignal::user_input_callback( const std_msgs::msg::String& msg )
 {
+  if ( msg.data == "toggle light")
+  {
+    std::cerr << "Toggling traffic lights" << std::endl;
+    for (auto &light : traffic_lights)
+    {
+      if ( light.state == TrafficSignalMsg::GREEN || light.state == TrafficSignalMsg::YELLOW)
+      {
+        light.state = TrafficSignalMsg::RED;
+        continue;
+      }
+
+      if ( light.state == TrafficSignalMsg::RED)
+      {
+        light.state = TrafficSignalMsg::GREEN;
+        continue;
+      }
+    }
+    return;
+  }
+
   if ( msg.data == "turn green")
   {
     for (auto &light : traffic_lights)
@@ -113,6 +133,7 @@ SimulatedTrafficSignal::user_input_callback( const std_msgs::msg::String& msg )
       light.state = TrafficSignalMsg::GREEN;
       light.last_transition_time = now();
     }
+    return;
   }
   
   if ( msg.data == "turn red")
@@ -123,6 +144,7 @@ SimulatedTrafficSignal::user_input_callback( const std_msgs::msg::String& msg )
       light.state = TrafficSignalMsg::RED;
       light.last_transition_time = now();
     }
+    return;
   }
 }
 
